@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Barang | HP Scound</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; color: var(--text); }
+        
+        /* Sidebar - Konsisten dengan Dashboard */
+        .sidebar { width: 260px; background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        /* Main Area */
+        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .header { margin-bottom: 30px; }
+        
+        /* Card Form */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        
+        input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; width: 100%; outline: none; font-size: 14px; }
+        input:focus { border-color: var(--primary); }
+        
+        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-save:hover { background: #1d4ed8; }
+
+        /* Tabel Aktivitas */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8fafc; font-size: 11px; color: #64748b; font-weight: 700; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        
+        /* Badges */
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .ready { background: #dcfce7; color: #166534; }
+        .sold { background: #fee2e2; color: #991b1b; }
+
+        .loading { color: #94a3b8; font-style: italic; text-align: center; padding: 20px; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="stok.html" class="nav-item active">📱 Stok Barang</a>
+        <a href="pencatatan1.html" class="nav-item">📝 Pencatatan Jual</a>
+        <a href="laporan.html" class="nav-item">📊 Laporan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Manajemen Stok HP</h1>
+            <p style="color: #64748b;">Pantau dan tambahkan inventaris unit HP.</p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Tambah Unit Baru</h3>
+            <div class="form-grid">
+                <input type="text" id="nama" placeholder="Nama/Tipe HP">
+                <input type="number" id="harga" placeholder="Harga Modal (Rp)">
+                <input type="date" id="tgl">
+            </div>
+            <button onclick="addStok()" id="btnSimpan" class="btn-save">Tambah ke Stok</button>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>Daftar Inventaris</h3>
+                <button onclick="loadStok()" style="font-size: 12px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">🔄 Refresh Stok</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>NAMA HP</th>
+                        <th>HARGA MODAL</th>
+                        <th>TGL MASUK</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelStok">
+                    <tr><td colspan="4" class="loading">Memuat data stok...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
+
+        // Proteksi Login
+        if (localStorage.getItem("session") !== "true") { window.location.href = "login1.html"; }
+
+        async function loadStok() {
+            try {
+                const res = await fetch(API + "?action=readStok");
+                const data = await res.json();
+                const tb = document.getElementById("tabelStok");
+                tb.innerHTML = "";
+                
+                data.reverse().forEach(d => {
+                    const cls = d.status === "TERSEDIA" ? "ready" : "sold";
+                    tb.innerHTML += `<tr>
+                        <td><b>${d.nama}</b></td>
+                        <td>Rp ${parseInt(d.hargaBeli).toLocaleString()}</td>
+                        <td>${d.tanggal}</td>
+                        <td><span class="badge ${cls}">${d.status}</span></td>
+                    </tr>`;
+                });
+            } catch (e) {
+                document.getElementById("tabelStok").innerHTML = "<tr><td colspan='4' class='loading'>Gagal memuat data.</td></tr>";
+            }
+        }
+
+        async function addStok() {
+            const n = document.getElementById("nama").value;
+            const h = document.getElementById("harga").value;
+            const t = document.getElementById("tgl").value;
+            const btn = document.getElementById("btnSimpan");
+
+            if(!n || !h || !t) return alert("Harap isi semua data!");
+
+            btn.innerText = "⏳ Memproses...";
+            btn.disabled = true;
+
+            try {
+                await fetch(`${API}?action=addStok&nama=${encodeURIComponent(n)}&hargaBeli=${h}&tanggal=${t}`);
+                alert("Unit berhasil ditambahkan!");
+                loadStok();
+                document.getElementById("nama").value = "";
+                document.getElementById("harga").value = "";
+                document.getElementById("tgl").value = "";
+            } catch (e) {
+                alert("Gagal menambah data.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Tambah ke Stok";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
+        }
+
+        window.onload = loadStok;
+    </script>
+</body>
+</html>

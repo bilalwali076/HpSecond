@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Penjualan | Login</title>
+    <style>
+        /* Desain Modern & Responsif */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #1e3c72;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="text"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            border-color: #2a5298;
+            outline: none;
+            box-shadow: 0 0 8px rgba(42, 82, 152, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2a5298;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #msg {
+            margin-top: 20px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        /* Bagian Debug yang lebih rapi */
+        .debug-box {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-debug {
+            background: #f0f0f0;
+            color: #666;
+            font-size: 12px;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+
+        #debug {
+            font-size: 11px;
+            color: #888;
+            word-break: break-all;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>LOGIN ADMIN</h2>
+        
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="user" placeholder="Masukkan username...">
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="pass" placeholder="Masukkan password...">
+        </div>
+
+        <button onclick="login()">Masuk Sistem</button>
+        
+        <p id="msg"></p>
+
+        <div class="debug-box">
+            <button class="btn-debug" onclick="cekKoneksi()">Cek Koneksi</button>
+            <div id="debug"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycby1Y9PkgzA_zMmyrjYD1vEntnNHCYfmIhiWs8eqH03wNCkmw7bgI4C8Ofi31YXqzvVI/exec";
+
+        function login() {
+            const u = document.getElementById("user").value;
+            const p = document.getElementById("pass").value;
+            const msg = document.getElementById("msg");
+
+            if (!u || !p) {
+                msg.style.color = "#e74c3c";
+                msg.innerText = "Username & Password wajib diisi!";
+                return;
+            }
+
+            msg.style.color = "#2a5298";
+            msg.innerText = "⏳ Memverifikasi...";
+
+            fetch(`${API_URL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        msg.style.color = "#27ae60";
+                        msg.innerText = "✅ Berhasil! Mengalihkan...";
+                        localStorage.setItem("session", "true");
+                        
+                        setTimeout(() => {
+                            window.location.href = "dashboard.html";
+                        }, 1000);
+                    } else {
+                        msg.style.color = "#e74c3c";
+                        msg.innerText = "❌ Username/Password salah.";
+                    }
+                })
+                .catch(e => {
+                    msg.style.color = "#e74c3c";
+                    msg.innerText = "❌ Gangguan koneksi ke server.";
+                });
+        }
+
+        function cekKoneksi() {
+            const div = document.getElementById("debug");
+            div.innerHTML = "Menghubungkan...";
+            fetch(`${API_URL}?action=cek_user`)
+                .then(res => res.json())
+                .then(data => {
+                    div.innerHTML = "<b>Status:</b> Terhubung!<br>" + JSON.stringify(data);
+                })
+                .catch(e => div.innerHTML = "Koneksi Gagal.");
+        }
+    </script>
+</body>
+</html>

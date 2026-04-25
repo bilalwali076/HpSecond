@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencatatan Jual | HP Scound</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; color: var(--text); }
+        
+        .sidebar { width: 260px; background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .header { margin-bottom: 30px; }
+        
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        
+        input, select { padding: 12px; border: 1px solid var(--border); border-radius: 8px; width: 100%; outline: none; font-size: 14px; background: white; }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-save:hover { background: #1d4ed8; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8fafc; font-size: 11px; color: #64748b; font-weight: 700; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        
+        .loading { color: #94a3b8; font-style: italic; text-align: center; padding: 20px; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; text-align: left; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="stok.html" class="nav-item">📱 Stok Barang</a>
+        <a href="pencatatan.html" class="nav-item active">📝 Pencatatan Jual</a>
+        <a href="laporan.html" class="nav-item">📊 Laporan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1>Pencatatan Jual</h1>
+            <p style="color: #64748b;">Pilih unit HP yang akan dijual.</p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Tambah Transaksi</h3>
+            <div class="form-grid">
+                <input type="text" id="pembeli" placeholder="Nama Pembeli">
+                
+                <select id="produk">
+                    <option value="">-- Pilih HP --</option>
+                </select>
+
+                <input type="number" id="hargaJual" placeholder="Harga Jual (Rp)">
+            </div>
+            <button onclick="simpanPenjualan()" id="btnSimpan" class="btn-save">Simpan Transaksi</button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Riwayat Penjualan Terbaru</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>PEMBELI</th>
+                        <th>UNIT</th>
+                        <th>HARGA JUAL</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelJual">
+                    <tr><td colspan="4" class="loading">Memuat data transaksi...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
+
+        if (localStorage.getItem("session") !== "true") { window.location.href = "login1.html"; }
+
+        async function loadInitialData() {
+            try {
+                // Ambil stok yang statusnya TERSEDIA
+                const resStok = await fetch(`${API_URL}?action=getStokReady`);
+                const stokReady = await resStok.json();
+                
+                const selectProduk = document.getElementById("produk");
+                selectProduk.innerHTML = '<option value="">-- Pilih HP --</option>';
+                
+                stokReady.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.id; // Tetap simpan ID di sistem
+                    opt.text = item.nama; // User cuma lihat NAMA HP
+                    opt.setAttribute("data-nama", item.nama);
+                    selectProduk.appendChild(opt);
+                });
+
+                // Load riwayat penjualan
+                const resHistory = await fetch(`${API_URL}?action=readHistory`);
+                const history = await resHistory.json();
+                
+                const tbody = document.getElementById("tabelJual");
+                tbody.innerHTML = "";
+                history.reverse().slice(0, 10).forEach(h => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${h.tanggal}</td>
+                            <td><b>${h.pembeli}</b></td>
+                            <td>${h.produk}</td>
+                            <td style="color: #10b981; font-weight: 600;">Rp ${parseInt(h.harga).toLocaleString()}</td>
+                        </tr>`;
+                });
+
+            } catch (e) {
+                console.error("Gagal load:", e);
+            }
+        }
+
+        async function simpanPenjualan() {
+            const pembeli = document.getElementById("pembeli").value;
+            const selectHP = document.getElementById("produk");
+            const idHp = selectHP.value;
+            const namaHp = selectHP.options[selectHP.selectedIndex].getAttribute("data-nama");
+            const harga = document.getElementById("hargaJual").value;
+            const btn = document.getElementById("btnSimpan");
+
+            if (!pembeli || !idHp || !harga) return alert("Lengkapi data!");
+
+            btn.disabled = true;
+            btn.innerText = "⏳ Menyimpan...";
+
+            const url = `${API_URL}?action=addSale&nama=${encodeURIComponent(pembeli)}&id_hp=${idHp}&produk=${encodeURIComponent(namaHp)}&harga=${harga}`;
+
+            try {
+                await fetch(url, { mode: 'no-cors' });
+                alert("Berhasil!");
+                document.getElementById("pembeli").value = "";
+                document.getElementById("hargaJual").value = "";
+                loadInitialData();
+            } catch (e) {
+                alert("Error!");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Transaksi";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
+        }
+
+        window.onload = loadInitialData;
+    </script>
+</body>
+</html>

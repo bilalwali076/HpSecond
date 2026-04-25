@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | HP Scound</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; color: var(--text); }
+        
+        /* Sidebar - Konsisten dengan desainmu */
+        .sidebar { width: 260px; background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        /* Main Area */
+        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .header { margin-bottom: 30px; }
+        
+        /* Stats Card - Simpel & Elegan */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .stat-card p { font-size: 13px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }
+        .stat-card h2 { font-size: 28px; font-weight: 700; }
+
+        /* Tabel Aktivitas */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8fafc; font-size: 11px; color: #64748b; font-weight: 700; border-bottom: 1px solid var(--border); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        
+        .loading { color: #94a3b8; font-style: italic; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
+        <a href="dashboard.html" class="nav-item active">🏠 Dashboard</a>
+        <a href="stok.html" class="nav-item">📱 Stok Barang</a>
+        <a href="pencatatan1.html" class="nav-item">📝 Pencatatan Jual</a>
+        <a href="laporan.html" class="nav-item">📊 Laporan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
+    </div>
+
+    <div class="main">
+        <div class="header">
+            <h1> Toko</h1>
+            <p id="tglHariIni" style="color: #64748b;"></p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Unit Tersedia</p>
+                <h2 id="stokReady">-</h2>
+            </div>
+            <div class="stat-card">
+                <p>Unit Terjual</p>
+                <h2 id="stokSold">-</h2>
+            </div>
+            <div class="stat-card">
+                <p>Total Penjualan</p>
+                <h2 id="totalSales" style="color: #10b981;">Rp 0</h2>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>5 Penjualan Terakhir</h3>
+            <br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>PEMBELI</th>
+                        <th>UNIT</th>
+                        <th>HARGA</th>
+                    </tr>
+                </thead>
+                <tbody id="recentSales">
+                    <tr><td colspan="4" class="loading">Tunggu Masih Proses Ya!!</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec"; // GANTI DENGAN URL API-MU
+
+        // Proteksi Login
+        if (localStorage.getItem("session") !== "true") { window.location.href = "login1.html"; }
+
+        // Set Tanggal
+        document.getElementById("tglHariIni").innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        async function initDashboard() {
+            try {
+                // Ambil data Stok dan Jual sekaligus (Parallel Fetch)
+                const [resStok, resJual] = await Promise.all([
+                    fetch(API + "?action=readStok"),
+                    fetch(API + "?action=readHistory")
+                ]);
+
+                const dataStok = await resStok.json();
+                const dataJual = await resJual.json();
+
+                // Hitung Statistik
+                const ready = dataStok.filter(s => s.status === "TERSEDIA").length;
+                const sold = dataStok.filter(s => s.status === "TERJUAL").length;
+                let omzet = 0;
+                dataJual.forEach(j => omzet += parseInt(j.harga));
+
+                // Update UI
+                document.getElementById("stokReady").innerText = ready + " Unit";
+                document.getElementById("stokSold").innerText = sold + " Unit";
+                document.getElementById("totalSales").innerText = "Rp " + omzet.toLocaleString();
+
+                // Tabel 5 Terakhir
+                const tb = document.getElementById("recentSales");
+                tb.innerHTML = "";
+                dataJual.reverse().slice(0, 5).forEach(j => {
+                    tb.innerHTML += `<tr>
+                        <td>${j.tanggal}</td>
+                        <td><b>${j.pembeli}</b></td>
+                        <td>${j.produk}</td>
+                        <td>Rp ${parseInt(j.harga).toLocaleString()}</td>
+                    </tr>`;
+                });
+
+            } catch (e) {
+                console.error("Gagal load dashboard", e);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
+        }
+
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>

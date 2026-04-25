@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Keuangan | HP Scound</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); display: flex; color: var(--text); }
+        
+        /* Sidebar - Konsisten */
+        .sidebar { width: 260px; background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        /* Main Area */
+        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+        /* Filter Card */
+        .filter-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; display: flex; gap: 15px; align-items: flex-end; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus { border-color: var(--primary); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .stat-card p { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+        .stat-card h2 { font-size: 22px; font-weight: 700; }
+
+        /* Table Card */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; background: #f8fafc; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 1px solid var(--border); font-weight: 700; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+
+        .btn { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; border: none; transition: 0.2s; }
+        .btn-filter { background: var(--primary); color: white; }
+        .btn-filter:hover { background: #1d4ed8; }
+        .btn-print { background: #0f172a; color: white; }
+        .btn-print:hover { background: #1e293b; }
+
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; width: 100%; text-align: left; }
+
+        /* Print Mode */
+        @media print {
+            .sidebar, .no-print, .filter-card, .btn-print { display: none !important; }
+            .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar no-print">
+        <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="stok.html" class="nav-item">📱 Stok Barang</a>
+        <a href="pencatatan1.html" class="nav-item">📝 Pencatatan Jual</a>
+        <a href="laporan.html" class="nav-item active">📊 Laporan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
+    </div>
+
+    <div class="main">
+        <div class="header-flex">
+            <div>
+                <h1>Laporan Keuangan</h1>
+                <p style="color: #64748b;">Analisis keuntungan dan performa toko.</p>
+            </div>
+            <button class="btn btn-print no-print" onclick="window.print()">📥 Cetak / PDF</button>
+        </div>
+
+        <div class="filter-card no-print">
+            <div class="filter-group">
+                <label>Dari Tanggal</label>
+                <input type="date" id="tglMulai">
+            </div>
+            <div class="filter-group">
+                <label>Sampai Tanggal</label>
+                <input type="date" id="tglSelesai">
+            </div>
+            <button class="btn btn-filter" onclick="filterLaporan()">Filter Data</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>Total Modal</p>
+                <h2 id="totalModal">Rp 0</h2>
+            </div>
+            <div class="stat-card">
+                <p>Total Omzet</p>
+                <h2 id="totalOmzet" style="color: var(--primary);">Rp 0</h2>
+            </div>
+            <div class="stat-card">
+                <p>Laba Bersih</p>
+                <h2 id="totalUntung" style="color: #10b981;">Rp 0</h2>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Rincian Transaksi</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>PEMBELI</th>
+                        <th>UNIT PRODUK</th>
+                        <th>MODAL</th>
+                        <th>HARGA JUAL</th>
+                        <th>LABA</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelLaporan">
+                    <tr><td colspan="6" style="text-align:center; color:#94a3b8; font-style:italic;">Memuat data laporan...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
+
+        // Proteksi Login
+        if (localStorage.getItem("session") !== "true") { window.location.href = "login1.html"; }
+
+        let dataSemuaJual = [];
+        let dataSemuaStok = [];
+
+        async function loadLaporan() {
+            try {
+                const [resStok, resJual] = await Promise.all([
+                    fetch(API + "?action=readStok"),
+                    fetch(API + "?action=readHistory")
+                ]);
+                dataSemuaStok = await resStok.json();
+                dataSemuaJual = await resJual.json();
+                tampilkanData(dataSemuaJual);
+            } catch (e) {
+                console.error("Gagal memuat:", e);
+            }
+        }
+
+        function tampilkanData(dataJual) {
+            const tb = document.getElementById("tabelLaporan");
+            tb.innerHTML = "";
+            let modal = 0, omzet = 0, untung = 0;
+
+            dataJual.forEach(j => {
+                const spekStok = dataSemuaStok.find(s => s.nama === j.produk);
+                const hBeli = spekStok ? parseInt(spekStok.hargaBeli) : 0;
+                const hJual = parseInt(j.harga);
+                const laba = hJual - hBeli;
+
+                modal += hBeli; omzet += hJual; untung += laba;
+
+                tb.innerHTML += `
+                    <tr>
+                        <td>${j.tanggal}</td>
+                        <td><b>${j.pembeli}</b></td>
+                        <td>${j.produk}</td>
+                        <td>Rp ${hBeli.toLocaleString()}</td>
+                        <td>Rp ${hJual.toLocaleString()}</td>
+                        <td style="color: #10b981; font-weight: 600;">Rp ${laba.toLocaleString()}</td>
+                    </tr>`;
+            });
+
+            document.getElementById("totalModal").innerText = "Rp " + modal.toLocaleString();
+            document.getElementById("totalOmzet").innerText = "Rp " + omzet.toLocaleString();
+            document.getElementById("totalUntung").innerText = "Rp " + untung.toLocaleString();
+        }
+
+        function filterLaporan() {
+            const mulai = document.getElementById("tglMulai").value;
+            const selesai = document.getElementById("tglSelesai").value;
+            if (!mulai || !selesai) return alert("Pilih rentang tanggal!");
+
+            const hasilFilter = dataSemuaJual.filter(j => {
+                const parts = j.tanggal.split('/');
+                const tglData = new Date(parts[2], parts[1] - 1, parts[0]);
+                return tglData >= new Date(mulai) && tglData <= new Date(selesai);
+            });
+            tampilkanData(hasilFilter);
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
+        }
+
+        window.onload = loadLaporan;
+    </script>
+</body>
+</html>
