@@ -6,49 +6,86 @@
     <title>Stok Barang | HP Scound</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; --sidebar-width: 260px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); display: flex; color: var(--text); }
         
-        /* Sidebar - Konsisten dengan Dashboard */
-        .sidebar { width: 260px; background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; }
+        /* Mencegah scroll horizontal di laptop */
+        body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); 
+            position: fixed; padding: 25px; transition: 0.3s; z-index: 1001; left: 0; 
+        }
         .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
         .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
         .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; text-align: left; width: 100%; }
 
-        /* Main Area */
-        .main { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        .header { margin-bottom: 30px; }
-        
-        /* Card Form */
-        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        
-        input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; width: 100%; outline: none; font-size: 14px; }
-        input:focus { border-color: var(--primary); }
-        
-        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
-        .btn-save:hover { background: #1d4ed8; }
+        /* --- MAIN AREA --- */
+        .main { 
+            flex: 1; 
+            margin-left: var(--sidebar-width); 
+            padding: 40px; 
+            transition: 0.3s; 
+            width: calc(100% - var(--sidebar-width)); 
+            max-width: 100%;
+        }
 
-        /* Tabel Aktivitas */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; background: #f8fafc; font-size: 11px; color: #64748b; font-weight: 700; border-bottom: 1px solid var(--border); text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
-        
+        /* Navbar Mobile */
+        .mobile-nav { 
+            display: none; background: white; padding: 15px 20px; border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 1000; justify-content: space-between; align-items: center;
+        }
+        .toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+        /* UI Cards */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; width: 100%; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; font-size: 14px; outline: none; }
+        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* --- TABEL ANTI-SCROLL LAPTOP --- */
+        .table-container { width: 100%; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { text-align: left; padding: 12px 8px; background: #f8fafc; font-size: 11px; color: #64748b; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; word-wrap: break-word; }
+
+        /* Lebar Kolom */
+        .col-nama { width: auto; }
+        .col-harga { width: 25%; }
+        .col-tgl { width: 20%; }
+        .col-status { width: 120px; text-align: center; }
+
         /* Badges */
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
         .ready { background: #dcfce7; color: #166534; }
         .sold { background: #fee2e2; color: #991b1b; }
 
-        .loading { color: #94a3b8; font-style: italic; text-align: center; padding: 20px; }
-        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media screen and (max-width: 1024px) {
+            .sidebar { left: -260px; }
+            .sidebar.active { left: 0; }
+            .main { margin-left: 0; padding: 20px; width: 100%; }
+            .mobile-nav { display: flex; }
+            .overlay.active { display: block; }
+            
+            .table-container { overflow-x: auto; }
+            table { table-layout: auto; min-width: 500px; }
+            .col-status { text-align: left; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
         <h2>HP Scound</h2>
-        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
+        <p style="color: #94a3b8; font-size: 11px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
         <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
         <a href="stok.html" class="nav-item active">📱 Stok Barang</a>
         <a href="pencatatan1.html" class="nav-item">📝 Pencatatan Jual</a>
@@ -56,47 +93,70 @@
         <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
     </div>
 
-    <div class="main">
-        <div class="header">
-            <h1>Manajemen Stok HP</h1>
-            <p style="color: #64748b;">Pantau dan tambahkan inventaris unit HP.</p>
+    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+        
+        <div class="mobile-nav">
+            <h2 style="color: var(--primary); font-size: 18px;">HP Scound</h2>
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 15px;">Tambah Unit Baru</h3>
-            <div class="form-grid">
-                <input type="text" id="nama" placeholder="Nama/Tipe HP">
-                <input type="number" id="harga" placeholder="Harga Modal (Rp)">
-                <input type="date" id="tgl">
+        <div class="main">
+            <div class="header">
+                <h1>Manajemen Stok HP</h1>
+                <p style="color: #64748b; font-size: 14px;">Pantau dan tambahkan inventaris unit HP.</p>
             </div>
-            <button onclick="addStok()" id="btnSimpan" class="btn-save">Tambah ke Stok</button>
-        </div>
 
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>Daftar Inventaris</h3>
-                <button onclick="loadStok()" style="font-size: 12px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">🔄 Refresh Stok</button>
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">Tambah Unit Baru</h3>
+                <div class="form-grid">
+                    <div>
+                        <label>Nama/Tipe HP</label>
+                        <input type="text" id="nama" placeholder="Contoh: iPhone 13">
+                    </div>
+                    <div>
+                        <label>Harga Modal</label>
+                        <input type="number" id="harga" placeholder="Rp">
+                    </div>
+                    <div>
+                        <label>Tanggal Masuk</label>
+                        <input type="date" id="tgl">
+                    </div>
+                </div>
+                <button onclick="addStok()" id="btnSimpan" class="btn-save">Tambah ke Stok</button>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>NAMA HP</th>
-                        <th>HARGA MODAL</th>
-                        <th>TGL MASUK</th>
-                        <th>STATUS</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelStok">
-                    <tr><td colspan="4" class="loading">Memuat data stok...</td></tr>
-                </tbody>
-            </table>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 16px;">Daftar Inventaris</h3>
+                    <button onclick="loadStok()" style="font-size: 12px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-nama">NAMA HP</th>
+                                <th class="col-harga">HARGA MODAL</th>
+                                <th class="col-tgl">TGL MASUK</th>
+                                <th class="col-status">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelStok">
+                            <tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">Memuat data stok...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
 
-        // Proteksi Login
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+
         if (localStorage.getItem("session") !== "true") { window.location.href = "login1.html"; }
 
         async function loadStok() {
@@ -112,11 +172,11 @@
                         <td><b>${d.nama}</b></td>
                         <td>Rp ${parseInt(d.hargaBeli).toLocaleString()}</td>
                         <td>${d.tanggal}</td>
-                        <td><span class="badge ${cls}">${d.status}</span></td>
+                        <td class="col-status"><span class="badge ${cls}">${d.status}</span></td>
                     </tr>`;
                 });
             } catch (e) {
-                document.getElementById("tabelStok").innerHTML = "<tr><td colspan='4' class='loading'>Gagal memuat data.</td></tr>";
+                document.getElementById("tabelStok").innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px; color:red;'>Gagal memuat data.</td></tr>";
             }
         }
 
