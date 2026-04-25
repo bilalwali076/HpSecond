@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Keuangan | HP Scound</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        /* Mencegah scroll horizontal di desktop */
+        body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); 
+            position: fixed; padding: 25px; transition: 0.3s; z-index: 1001; left: 0; 
+        }
+        .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; text-align: left; width: 100%; }
+
+        /* --- MAIN AREA --- */
+        .main { 
+            flex: 1; 
+            margin-left: var(--sidebar-width); 
+            padding: 40px; 
+            transition: 0.3s; 
+            width: calc(100% - var(--sidebar-width)); 
+            max-width: 100%;
+        }
+
+        /* Navbar Mobile */
+        .mobile-nav { 
+            display: none; background: white; padding: 15px 20px; border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 1000; justify-content: space-between; align-items: center;
+        }
+        .toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+        /* Filter Box */
+        .filter-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+
+        /* Stats Card */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        .stat-card p { font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-card h2 { font-size: 22px; font-weight: 700; }
+
+        /* --- TABEL ANTI-SCROLL LAPTOP --- */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+        .table-container { width: 100%; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { text-align: left; padding: 12px 8px; background: #f8fafc; font-size: 11px; color: #64748b; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 13px; word-wrap: break-word; }
+
+        /* Lebar Kolom */
+        .col-tgl { width: 110px; }
+        .col-pembeli { width: 15%; }
+        .col-unit { width: auto; }
+        .col-uang { width: 100px; text-align: right; }
+
+        button { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .btn-print { background: #0f172a; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; }
+
+        /* --- RESPONSIVE MOBILE --- */
+        @media screen and (max-width: 1024px) {
+            .sidebar { left: -260px; }
+            .sidebar.active { left: 0; }
+            .main { margin-left: 0; padding: 20px; width: 100%; }
+            .mobile-nav { display: flex; }
+            .overlay.active { display: block; }
+            .table-container { overflow-x: auto; }
+            table { table-layout: auto; min-width: 700px; }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            .sidebar, .no-print, .filter-card, .toggle-btn, .mobile-nav { display: none !important; }
+            .main { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+            .card { border: none !important; }
+            .stat-card { border: 1px solid #ddd !important; float: left; width: 30%; margin-right: 3%; }
+            table { font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
+        <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 11px; margin-bottom: 15px; font-weight: 700;">MENU</p>
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="stok.html" class="nav-item">📱 Stok Barang</a>
+        <a href="pencatatan1.html" class="nav-item">📝 Pencatatan Jual</a>
+        <a href="laporan.html" class="nav-item active">📊 Laporan Keuangan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+        
+        <div class="mobile-nav">
+            <h2 style="color: var(--primary); font-size: 18px;">HP Scound</h2>
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <div class="main">
+            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1>Laporan Penjualan</h1>
+                <button class="btn-print" onclick="window.print()">📥 Cetak Laporan</button>
+            </div>
+
+            <div class="filter-card no-print">
+                <div class="filter-group">
+                    <label>Dari Tanggal</label>
+                    <input type="date" id="tglMulai">
+                </div>
+                <div class="filter-group">
+                    <label>Sampai Tanggal</label>
+                    <input type="date" id="tglSelesai">
+                </div>
+                <button onclick="filterLaporan()">Filter Data</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p>Total Modal</p>
+                    <h2 id="totalModal">Rp 0</h2>
+                </div>
+                <div class="stat-card">
+                    <p>Total Omzet</p>
+                    <h2 id="totalOmzet" style="color: var(--primary);">Rp 0</h2>
+                </div>
+                <div class="stat-card">
+                    <p>Keuntungan Bersih</p>
+                    <h2 id="totalUntung" style="color: #10b981;">Rp 0</h2>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">Rincian Transaksi</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-tgl">TANGGAL</th>
+                                <th class="col-pembeli">PEMBELI</th>
+                                <th class="col-unit">UNIT PRODUK</th>
+                                <th class="col-uang">MODAL</th>
+                                <th class="col-uang">JUAL</th>
+                                <th class="col-uang">LABA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelLaporan">
+                            <tr><td colspan="6" style="text-align:center; padding: 20px;">Memuat data laporan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
+
+        let dataSemuaJual = [];
+        let dataSemuaStok = [];
+
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+
+        async function loadLaporan() {
+            try {
+                const [resStok, resJual] = await Promise.all([
+                    fetch(API + "?action=readStok"),
+                    fetch(API + "?action=readHistory")
+                ]);
+                dataSemuaStok = await resStok.json();
+                dataSemuaJual = await resJual.json();
+                tampilkanData(dataSemuaJual);
+            } catch (e) { console.error(e); }
+        }
+
+        function tampilkanData(dataJual) {
+            const tb = document.getElementById("tabelLaporan");
+            tb.innerHTML = "";
+            let modal = 0, omzet = 0, untung = 0;
+
+            dataJual.forEach(j => {
+                const spekStok = dataSemuaStok.find(s => s.nama === j.produk);
+                const hBeli = spekStok ? parseInt(spekStok.hargaBeli) : 0;
+                const hJual = parseInt(j.harga);
+                const laba = hJual - hBeli;
+
+                modal += hBeli; omzet += hJual; untung += laba;
+
+                tb.innerHTML += `
+                    <tr>
+                        <td>${j.tanggal}</td>
+                        <td><b>${j.pembeli}</b></td>
+                        <td>${j.produk}</td>
+                        <td class="col-uang">Rp${hBeli.toLocaleString()}</td>
+                        <td class="col-uang">Rp${hJual.toLocaleString()}</td>
+                        <td class="col-uang" style="color: #10b981; font-weight: 600;">Rp${laba.toLocaleString()}</td>
+                    </tr>`;
+            });
+
+            document.getElementById("totalModal").innerText = "Rp " + modal.toLocaleString();
+            document.getElementById("totalOmzet").innerText = "Rp " + omzet.toLocaleString();
+            document.getElementById("totalUntung").innerText = "Rp " + untung.toLocaleString();
+        }
+
+        function filterLaporan() {
+            const mulai = document.getElementById("tglMulai").value;
+            const selesai = document.getElementById("tglSelesai").value;
+            if (!mulai || !selesai) return alert("Pilih tanggal!");
+
+            const hasilFilter = dataSemuaJual.filter(j => {
+                const parts = j.tanggal.split('/');
+                const tglData = new Date(parts[2], parts[1] - 1, parts[0]);
+                return tglData >= new Date(mulai) && tglData <= new Date(selesai);
+            });
+            tampilkanData(hasilFilter);
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
+        }
+
+        window.onload = loadLaporan;
+    </script>
+</body>
+</html>
