@@ -6,6 +6,46 @@
     <title>Dashboard | HP Scound</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* RESPONSIF UNTUK HP */
+@media screen and (max-width: 768px) {
+    body { flex-direction: column; } /* Sidebar jadi di atas atau sembunyi */
+
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        position: relative; 
+        padding: 15px; 
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar h2 { margin-bottom: 15px; }
+    
+    .nav-item { 
+        display: inline-block; /* Menu jadi berjejer ke samping */
+        margin-right: 10px;
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .main { 
+        margin-left: 0 !important; /* Hilangkan margin kiri karena sidebar sudah di atas */
+        width: 100% !important; 
+        padding: 20px; 
+    }
+
+    .stats-grid { 
+        grid-template-columns: 1fr; /* Statistik jadi satu baris ke bawah */
+    }
+
+    .form-grid { 
+        grid-template-columns: 1fr; /* Form input jadi satu baris ke bawah */
+    }
+
+    /* Agar tabel bisa di-scroll ke samping kalau kepotong */
+    .card { overflow-x: auto; }
+    table { min-width: 500px; } 
+}
         :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); display: flex; color: var(--text); }
