@@ -2,7 +2,7 @@
   "name": "HP Scound Management",
   "short_name": "HP Scound",
   "description": "Sistem Manajemen Stok dan Penjualan HP Scound",
-  "start_url": "login1.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
