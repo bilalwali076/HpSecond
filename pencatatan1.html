@@ -8,215 +8,130 @@
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --border: #e2e8f0; --text: #1e293b; --sidebar-width: 260px; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        
-        /* Mencegah scroll horizontal di seluruh halaman body */
         body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { 
-            width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); 
-            position: fixed; padding: 25px; transition: 0.3s; z-index: 1001; left: 0; 
-        }
+        .sidebar { width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; left: 0; }
         .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
-        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
-        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; text-align: left; width: 100%; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
 
-        /* --- MAIN CONTENT --- */
-        .main { 
-            flex: 1; 
-            margin-left: var(--sidebar-width); 
-            padding: 40px; 
-            transition: 0.3s; 
-            width: calc(100% - var(--sidebar-width)); /* Kalkulasi lebar bersih */
-            max-width: 100%;
-        }
-
-        .mobile-nav { 
-            display: none; background: white; padding: 15px 20px; border-bottom: 1px solid var(--border); 
-            position: sticky; top: 0; z-index: 1000; justify-content: space-between; align-items: center;
-        }
-        .toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
-
-        /* UI Cards */
-        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; width: 100%; }
+        .main { flex: 1; margin-left: var(--sidebar-width); padding: 40px; width: calc(100% - var(--sidebar-width)); }
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        
         label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; font-size: 14px; outline: none; }
-        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; font-size: 14px; }
+        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; }
 
-        /* --- TABEL SUPER CLEAN (NO SCROLL DESKTOP) --- */
-        .table-container { 
-            width: 100%; 
-            overflow: hidden; /* Paksa sembunyi scroll di desktop */
-        }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            table-layout: fixed; /* WAJIB: Bagi lebar berdasarkan persentase kolom */
-        }
+        table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 8px; background: #f8fafc; font-size: 11px; color: #64748b; border-bottom: 1px solid var(--border); }
-        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; word-wrap: break-word; }
-
-        /* Atur pembagian lebar kolom yang pas di laptop */
-        .col-tgl { width: 120px; }
-        .col-pembeli { width: auto; }
-        .col-unit { width: 30%; }
-        .col-harga { width: 150px; text-align: right; }
-
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; }
-
-        /* --- RESPONSIVE MOBILE --- */
-        @media screen and (max-width: 1024px) {
-            .sidebar { left: -260px; }
-            .sidebar.active { left: 0; }
-            .main { margin-left: 0; padding: 20px; width: 100%; }
-            .mobile-nav { display: flex; }
-            .overlay.active { display: block; }
-            
-            /* Di HP, aktifkan kembali scroll agar tabel tidak hancur */
-            .table-container { overflow-x: auto; }
-            table { table-layout: auto; min-width: 500px; }
-            .col-harga { text-align: left; }
-        }
+        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar">
         <h2>HP Scound</h2>
-        <p style="color: #94a3b8; font-size: 11px; margin-bottom: 10px; font-weight: 700;">NAVIGASI</p>
         <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
         <a href="stok.html" class="nav-item">📱 Stok Barang</a>
         <a href="pencatatan.html" class="nav-item active">📝 Pencatatan Jual</a>
         <a href="laporan.html" class="nav-item">📊 Laporan</a>
-        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
     </div>
 
-    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
-        
-        <div class="mobile-nav">
-            <h2 style="color: var(--primary); font-size: 18px;">HP Scound</h2>
-            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <div class="main">
+        <h1>Pencatatan Jual</h1>
+        <div class="card">
+            <div class="form-grid">
+                <div>
+                    <label>Nama Pembeli</label>
+                    <input type="text" id="pembeli" placeholder="Nama pembeli">
+                </div>
+                <div>
+                    <label>Unit HP</label>
+                    <select id="produk">
+                        <option value="">-- Memuat Unit... --</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Harga Jual (Rp)</label>
+                    <input type="number" id="hargaJual" placeholder="Otomatis terisi">
+                </div>
+            </div>
+            <button onclick="simpanPenjualan()" id="btnSimpan" class="btn-save">Simpan Transaksi</button>
         </div>
 
-        <div class="main">
-            <div class="header" style="margin-bottom: 20px;">
-                <h1 style="font-size: 24px;">Pencatatan Jual</h1>
-                <p style="color: #64748b; font-size: 14px;">Kelola transaksi keluar unit HP.</p>
-            </div>
-
-            <div class="card">
-                <div class="form-grid">
-                    <div>
-                        <label>Nama Pembeli</label>
-                        <input type="text" id="pembeli" placeholder="Nama pembeli">
-                    </div>
-                    <div>
-                        <label>Unit HP</label>
-                        <select id="produk">
-                            <option value="">-- Pilih Unit --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Harga Jual (Rp)</label>
-                        <input type="number" id="hargaJual" placeholder="Contoh: 1500000">
-                    </div>
-                </div>
-                <button onclick="simpanPenjualan()" id="btnSimpan" class="btn-save">Simpan Transaksi</button>
-            </div>
-
-            <div class="card" style="padding: 15px;">
-                <h3 style="margin-bottom: 15px; font-size: 16px;">Riwayat Penjualan Terbaru</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="col-tgl">TANGGAL</th>
-                                <th class="col-pembeli">PEMBELI</th>
-                                <th class="col-unit">UNIT HP</th>
-                                <th class="col-harga">HARGA</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelJual">
-                            <tr><td colspan="4" style="text-align:center; padding:30px;">Memuat data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="card">
+            <h3>Riwayat Penjualan Terbaru</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>PEMBELI</th>
+                        <th>UNIT HP</th>
+                        <th style="text-align:right;">HARGA</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelJual">
+                    <tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyDUZWji_yox8iLgjdCtuLYd7PWekSNG7ZM87RvY9g1c81iDHOc6K7B95ZpqdBOCWNvFw/exec";
-
-        function toggleSidebar() {
-            document.getElementById("sidebar").classList.toggle("active");
-            document.getElementById("overlay").classList.toggle("active");
-        }
-
-        if (localStorage.getItem("session") !== "true") { window.location.href = "index.html"; }
+        const API_URL = "https://script.google.com/macros/s/AKfycbwk_QgbEjKtDMSAk8tZAewDmRvDXR9zJdtUxko9wixU7M4XrwdFliB8EGiNIJEDZDEwBg/exec";
+        let listStokReady = [];
 
         async function loadInitialData() {
             try {
-                const resStok = await fetch(`${API_URL}?action=getStokReady`);
-                const stokReady = await resStok.json();
+                // Ambil data stok untuk dropdown (Hanya yang TERSEDIA)
+                const resStok = await fetch(`${API_URL}?action=readStok`);
+                const allData = await resStok.json();
+                listStokReady = allData.filter(item => item.status === "TERSEDIA");
+
                 const select = document.getElementById("produk");
                 select.innerHTML = '<option value="">-- Pilih Unit --</option>';
-                stokReady.forEach(item => {
-                    const opt = document.createElement("option");
-                    opt.value = item.id;
-                    opt.text = item.nama;
-                    opt.setAttribute("data-nama", item.nama);
-                    select.appendChild(opt);
+                listStokReady.forEach(item => {
+                    select.innerHTML += `<option value="${item.id}">${item.nama}</option>`;
                 });
 
-                const resHistory = await fetch(`${API_URL}?action=readHistory`);
-                const history = await resHistory.json();
+                // Ambil riwayat penjualan
+                const resHist = await fetch(`${API_URL}?action=readHistory`);
+                const history = await resHist.json();
                 const tbody = document.getElementById("tabelJual");
                 tbody.innerHTML = "";
-                
-                history.reverse().slice(0, 10).forEach(h => {
+                history.reverse().forEach(h => {
                     tbody.innerHTML += `<tr>
                         <td>${h.tanggal}</td>
-                        <td><b>${h.pembeli}</b></td>
+                        <td>${h.pembeli}</td>
                         <td>${h.produk}</td>
-                        <td style="color: #10b981; font-weight: 700; text-align:right;">Rp ${parseInt(h.harga).toLocaleString()}</td>
+                        <td style="text-align:right;">Rp ${parseInt(h.harga).toLocaleString()}</td>
                     </tr>`;
                 });
             } catch (e) { console.error(e); }
         }
 
+        // Auto-fill harga jual saat pilih unit
+        document.getElementById("produk").addEventListener("change", function() {
+            const detail = listStokReady.find(i => i.id == this.value);
+            document.getElementById("hargaJual").value = detail ? detail.hargaJualRef : "";
+        });
+
         async function simpanPenjualan() {
             const pembeli = document.getElementById("pembeli").value;
-            const selectHP = document.getElementById("produk");
-            const idHp = selectHP.value;
-            const namaHp = selectHP.options[selectHP.selectedIndex].getAttribute("data-nama");
+            const select = document.getElementById("produk");
             const harga = document.getElementById("hargaJual").value;
-            const btn = document.getElementById("btnSimpan");
 
-            if (!pembeli || !idHp || !harga) return alert("Lengkapi data!");
+            if (!pembeli || !select.value || !harga) return alert("Isi semua data!");
 
-            btn.disabled = true;
-            btn.innerText = "⏳...";
-
-            const url = `${API_URL}?action=addSale&nama=${encodeURIComponent(pembeli)}&id_hp=${idHp}&produk=${encodeURIComponent(namaHp)}&harga=${harga}`;
+            document.getElementById("btnSimpan").disabled = true;
+            const url = `${API_URL}?action=addSale&nama=${encodeURIComponent(pembeli)}&id_hp=${select.value}&produk=${encodeURIComponent(select.options[select.selectedIndex].text)}&harga=${harga}`;
 
             try {
-                await fetch(url, { mode: 'no-cors' });
+                await fetch(url);
                 alert("Berhasil!");
-                document.getElementById("pembeli").value = "";
-                document.getElementById("hargaJual").value = "";
-                loadInitialData();
+                location.reload();
             } catch (e) { alert("Gagal!"); }
-            finally { btn.disabled = false; btn.innerText = "Simpan Transaksi"; }
-        }
-
-        function logout() {
-            localStorage.removeItem("session");
-            window.location.href = "index.html";
         }
 
         window.onload = loadInitialData;
