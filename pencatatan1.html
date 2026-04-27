@@ -10,105 +10,172 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
 
-        .sidebar { width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); position: fixed; padding: 25px; left: 0; }
+        /* --- SIDEBAR (Sama dengan Stok) --- */
+        .sidebar { 
+            width: var(--sidebar-width); background: white; height: 100vh; border-right: 1px solid var(--border); 
+            position: fixed; padding: 25px; transition: 0.3s; z-index: 1001; left: 0; 
+        }
         .sidebar h2 { color: var(--primary); margin-bottom: 30px; font-size: 22px; }
-        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; }
-        .nav-item.active { color: var(--primary); font-weight: 600; }
+        .nav-item { text-decoration: none; color: #64748b; display: block; padding: 12px 0; font-weight: 500; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); font-weight: 600; }
+        .btn-logout { margin-top: 50px; color: #ef4444; cursor: pointer; border: none; background: none; font-weight: 600; text-align: left; width: 100%; }
 
-        .main { flex: 1; margin-left: var(--sidebar-width); padding: 40px; width: calc(100% - var(--sidebar-width)); }
-        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px; }
+        /* --- MAIN AREA --- */
+        .main { 
+            flex: 1; margin-left: var(--sidebar-width); padding: 40px; 
+            transition: 0.3s; width: calc(100% - var(--sidebar-width)); max-width: 100%;
+        }
+
+        .mobile-nav { 
+            display: none; background: white; padding: 15px 20px; border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 1000; justify-content: space-between; align-items: center;
+        }
+        .toggle-btn { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 25px; width: 100%; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        
         label { display: block; font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; font-size: 14px; }
-        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; width: 100%; font-size: 14px; outline: none; background: white; }
+        
+        /* Button style disamakan dengan stok (tidak full width) */
+        .btn-save { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
 
-        table { width: 100%; border-collapse: collapse; }
+        /* --- TABEL --- */
+        .table-container { width: 100%; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { text-align: left; padding: 12px 8px; background: #f8fafc; font-size: 11px; color: #64748b; border-bottom: 1px solid var(--border); }
-        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; word-wrap: break-word; }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1000; }
+
+        @media screen and (max-width: 1024px) {
+            .sidebar { left: -260px; }
+            .sidebar.active { left: 0; }
+            .main { margin-left: 0; padding: 20px; width: 100%; }
+            .mobile-nav { display: flex; }
+            .overlay.active { display: block; }
+            .table-container { overflow-x: auto; }
+            table { table-layout: auto; min-width: 600px; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="sidebar">
         <h2>HP Scound</h2>
+        <p style="color: #94a3b8; font-size: 11px; margin-bottom: 10px; font-weight: 700;">UTAMA</p>
         <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
         <a href="stok.html" class="nav-item">📱 Stok Barang</a>
-        <a href="pencatatan.html" class="nav-item active">📝 Pencatatan Jual</a>
+        <a href="pencatatan1.html" class="nav-item active">📝 Pencatatan Jual</a>
         <a href="laporan.html" class="nav-item">📊 Laporan</a>
+        <button onclick="logout()" class="btn-logout">🚪 Keluar</button>
     </div>
 
-    <div class="main">
-        <h1>Pencatatan Jual</h1>
-        <div class="card">
-            <div class="form-grid">
-                <div>
-                    <label>Nama Pembeli</label>
-                    <input type="text" id="pembeli" placeholder="Nama pembeli">
-                </div>
-                <div>
-                    <label>Unit HP</label>
-                    <select id="produk">
-                        <option value="">-- Memuat Unit... --</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Harga Jual (Rp)</label>
-                    <input type="number" id="hargaJual" placeholder="Otomatis terisi">
-                </div>
-            </div>
-            <button onclick="simpanPenjualan()" id="btnSimpan" class="btn-save">Simpan Transaksi</button>
+    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+        <div class="mobile-nav">
+            <h2 style="color: var(--primary); font-size: 18px;">HP Scound</h2>
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         </div>
 
-        <div class="card">
-            <h3>Riwayat Penjualan Terbaru</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>TANGGAL</th>
-                        <th>PEMBELI</th>
-                        <th>UNIT HP</th>
-                        <th style="text-align:right;">HARGA</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelJual">
-                    <tr><td colspan="4" style="text-align:center;">Memuat data...</td></tr>
-                </tbody>
-            </table>
+        <div class="main">
+            <div class="header" style="margin-bottom: 25px;">
+                <h1>Pencatatan Jual</h1>
+                <p style="color: #64748b; font-size: 14px;">Catat transaksi penjualan unit HP yang keluar.</p>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 15px; font-size: 16px;">Input Transaksi Baru</h3>
+                <div class="form-grid">
+                    <div>
+                        <label>Nama Pembeli</label>
+                        <input type="text" id="pembeli" placeholder="Nama pembeli">
+                    </div>
+                    <div>
+                        <label>Unit HP (Tersedia)</label>
+                        <select id="produk">
+                            <option value="">-- Memuat Unit... --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Harga Jual (Rp)</label>
+                        <input type="number" id="hargaJual" placeholder="Otomatis terisi">
+                    </div>
+                </div>
+                <button onclick="simpanPenjualan()" id="btnSimpan" class="btn-save">Simpan Transaksi</button>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 16px;">Riwayat Penjualan Terbaru</h3>
+                    <button onclick="loadInitialData()" style="font-size: 12px; color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600;">🔄 Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">TANGGAL</th>
+                                <th style="width: 25%;">PEMBELI</th>
+                                <th>UNIT HP</th>
+                                <th style="text-align:right; width: 20%;">HARGA JUAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelJual">
+                            <tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">Memuat data penjualan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwk_QgbEjKtDMSAk8tZAewDmRvDXR9zJdtUxko9wixU7M4XrwdFliB8EGiNIJEDZDEwBg/exec";
+        // Gunakan API URL yang sama dengan stok
+        const API_URL = "https://script.google.com/macros/s/AKfycbwVJ5M73sAOdHui-WZBNBv7YeY8izGIoXYsJgLNElvWlgM2F7Yzcra_3rOBz8Ik9YhFYw/exec";
         let listStokReady = [];
 
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("overlay").classList.toggle("active");
+        }
+
         async function loadInitialData() {
+            const tbody = document.getElementById("tabelJual");
+            const select = document.getElementById("produk");
+            
             try {
-                // Ambil data stok untuk dropdown (Hanya yang TERSEDIA)
+                // 1. Load Stok untuk Dropdown
                 const resStok = await fetch(`${API_URL}?action=readStok`);
                 const allData = await resStok.json();
                 listStokReady = allData.filter(item => item.status === "TERSEDIA");
 
-                const select = document.getElementById("produk");
                 select.innerHTML = '<option value="">-- Pilih Unit --</option>';
                 listStokReady.forEach(item => {
                     select.innerHTML += `<option value="${item.id}">${item.nama}</option>`;
                 });
 
-                // Ambil riwayat penjualan
+                // 2. Load Riwayat Penjualan
                 const resHist = await fetch(`${API_URL}?action=readHistory`);
                 const history = await resHist.json();
-                const tbody = document.getElementById("tabelJual");
+                
                 tbody.innerHTML = "";
-                history.reverse().forEach(h => {
-                    tbody.innerHTML += `<tr>
-                        <td>${h.tanggal}</td>
-                        <td>${h.pembeli}</td>
-                        <td>${h.produk}</td>
-                        <td style="text-align:right;">Rp ${parseInt(h.harga).toLocaleString()}</td>
-                    </tr>`;
-                });
-            } catch (e) { console.error(e); }
+                if(history.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>Belum ada data penjualan.</td></tr>";
+                } else {
+                    history.reverse().forEach(h => {
+                        tbody.innerHTML += `<tr>
+                            <td>${h.tanggal}</td>
+                            <td><b>${h.pembeli}</b></td>
+                            <td>${h.produk}</td>
+                            <td style="text-align:right; font-weight:600; color:var(--primary);">Rp ${parseInt(h.harga).toLocaleString()}</td>
+                        </tr>`;
+                    });
+                }
+            } catch (e) { 
+                tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red; padding:20px;'>Gagal memuat data.</td></tr>";
+            }
         }
 
         // Auto-fill harga jual saat pilih unit
@@ -121,17 +188,36 @@
             const pembeli = document.getElementById("pembeli").value;
             const select = document.getElementById("produk");
             const harga = document.getElementById("hargaJual").value;
+            const btn = document.getElementById("btnSimpan");
 
-            if (!pembeli || !select.value || !harga) return alert("Isi semua data!");
+            if (!pembeli || !select.value || !harga) return alert("Harap isi semua data!");
 
-            document.getElementById("btnSimpan").disabled = true;
+            btn.disabled = true;
+            btn.innerText = "⏳ Memproses...";
+
             const url = `${API_URL}?action=addSale&nama=${encodeURIComponent(pembeli)}&id_hp=${select.value}&produk=${encodeURIComponent(select.options[select.selectedIndex].text)}&harga=${harga}`;
 
             try {
-                await fetch(url);
-                alert("Berhasil!");
-                location.reload();
-            } catch (e) { alert("Gagal!"); }
+                const res = await fetch(url);
+                const result = await res.text();
+                if(result === "Success") {
+                    alert("Transaksi Berhasil Disimpan!");
+                    // Reset Form
+                    document.getElementById("pembeli").value = "";
+                    document.getElementById("hargaJual").value = "";
+                    loadInitialData();
+                }
+            } catch (e) { 
+                alert("Gagal menyimpan transaksi."); 
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Simpan Transaksi";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("session");
+            window.location.href = "login1.html";
         }
 
         window.onload = loadInitialData;
